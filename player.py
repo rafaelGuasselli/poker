@@ -28,18 +28,21 @@ class Player:
 		return decision
 
 	def possibleActions(self, betAmount, amountOfPlayers):
-		possible = []
-		if betAmount == 0:
-			possible = ["allin", "check", "bet", "fold"]
-		elif self.betAmount == betAmount:
-			possible = ["allin", "check", "raise", "fold"]
-		elif self.betAmount < betAmount and self.betAmount + self.money > betAmount:
-			possible = ["allin", "call", "raise", "fold"]
-		else:
-			possible = ["allin", "fold"]
-		
-		if amountOfPlayers == 1:
-			possible.pop()
+		possible = ["allin"]
+
+		if self.betAmount + self.money > betAmount:
+			if self.betAmount == betAmount:
+				possible.append("check")
+			else:
+				possible.append("call")
+
+			if betAmount == 0:
+				possible.append("bet")
+			else:
+				possible.append("raise")
+
+		if amountOfPlayers > 1:
+			possible.append("fold")
 		
 		return possible
 
