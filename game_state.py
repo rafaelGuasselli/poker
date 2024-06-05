@@ -32,7 +32,7 @@ class GameState:
 				self.continueRoundMenu()
 				continue
 
-			if len(self.queue) > 0:
+			if len(self.queue) > 0 and self.amountOfPlayersStillOnTheGame() > 1:
 				currentPlayer = self.queue[0]
 				if not currentPlayer.playingThisRound:
 					continue
@@ -40,7 +40,7 @@ class GameState:
 				while True:
 					self.printGameState()
 					revealedCards = self.commonCards[0:self.amountOfRevealedCards]
-					decision = currentPlayer.decide(revealedCards, self.betAmount)
+					decision = currentPlayer.decide(revealedCards, self.betAmount, self.amountOfPlayersStillOnTheGame())
 					success = self.action(decision, currentPlayer)
 					
 					if success:
@@ -167,7 +167,7 @@ class GameState:
 		return self.bet(self.betAmount, player)
 	
 	def check(self, player) -> bool:
-		return self.bet(0, player)
+		return self.bet(player.betAmount, player)
 	
 	def allIn(self, player) -> bool:
 		return self.bet(player.money+player.betAmount, player)
@@ -191,6 +191,13 @@ class GameState:
 	def fold(self, player) -> bool:
 		player.playingThisRound = False
 		return True
+	
+	def amountOfPlayersStillOnTheGame(self) -> int:
+		amount = 0
+		for player in self.players:
+			if player.playingThisRound:
+				amount += 1
+		return amount 
 
 	def distributeWinnings(self) -> None:
 		winner = self.checker.checkWinner(self.players, self.commonCards)
@@ -202,11 +209,12 @@ class GameState:
 		for player in winner:
 			if self.betAmount <= 0:
 				break
-
+				
+			score = self.checker.checkHandValue(self.commonCards+player.cards)
 			ratio = float(player.betAmount)/float(self.betAmount)
 			earnedMoney = ratio * (self.potAmount/len(winner))
 			player.money += earnedMoney
-			print("Vencedor {:s}! +{:n} cards: {:s}".format(str(player), earnedMoney, self.formatCards(player.cards)))
+			print("Vencedor {:s}! +{:n} cards: {:s} score: {:n}".format(str(player), earnedMoney, self.formatCards(player.cards), score))
 		self.startNewRound()
 
 	def formatDecision(self, decision) -> str:

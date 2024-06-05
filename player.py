@@ -7,11 +7,11 @@ class Player:
 		self.index = index
 		self.name = name or "Player"
 
-	def decide(self, revealedCards, betAmount):
+	def decide(self, revealedCards, betAmount, amountOfPlayers):
 		print("Suas cartas: {:s}".format(self.formatCards(self.cards)))
 
 		decision = ["", 0]
-		possible = self.possibleActions(betAmount)
+		possible = self.possibleActions(betAmount, amountOfPlayers)
 		
 		while True:
 			print("Escolha uma ação: {:s}".format(self.formatChoices(possible)))
@@ -27,18 +27,26 @@ class Player:
 
 		return decision
 
-	def possibleActions(self, betAmount):
+	def possibleActions(self, betAmount, amountOfPlayers):
+		possible = []
 		if betAmount == 0:
-			return ["allin", "check", "bet", "fold"]
-		elif betAmount > 0 and self.betAmount <= betAmount and self.betAmount + self.money > betAmount:
-			return ["allin", "call", "raise", "fold"]
+			possible = ["allin", "check", "bet", "fold"]
+		elif self.betAmount == betAmount:
+			possible = ["allin", "check", "raise", "fold"]
+		elif self.betAmount < betAmount and self.betAmount + self.money > betAmount:
+			possible = ["allin", "call", "raise", "fold"]
 		else:
-			return ["allin", "fold"]
+			possible = ["allin", "fold"]
+		
+		if amountOfPlayers == 1:
+			possible.pop()
+		
+		return possible
 
 	def __str__(self):
 		state = "Jogando" if self.playingThisRound else "Desistiu"
 		state = "Perdeu" if self.money + self.betAmount <= 0 else state
-		return "{:n} - {:s} - {:s}: R${:n}".format(self.index, self.name, state, self.money)
+		return "{:s}({:n}) - {:s}: R${:n}".format(self.name, self.index, state, self.money)
 	
 	def formatChoices(self, possible):
 		result = ""
